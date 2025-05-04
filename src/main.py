@@ -11,24 +11,24 @@ file_path = os.path.join(root_path, 'text.txt')
 
 
 async def main_py(websocket):
-    async def receive():
+    async def server_receive():
         async for message in websocket:
             with open(file_path, 'w') as file:
                 file.write(message)
 
-    async def send():
-        last_text = ''
+    async def server_send():
+        send_text = ''
         while True:
             await asyncio.sleep(.5)
             if os.path.exists(file_path):
                 with open(file_path, 'r') as f:
                     text = f.read()
-                    if text != last_text:
+                    if text != send_text:
                         await websocket.send(text)
-                        last_text = text
+                        send_text = text
 
     # gather is used to run function in parallel
-    await asyncio.gather(send(), receive())
+    await asyncio.gather(server_send(), server_receive())
 
 
 async def main():
