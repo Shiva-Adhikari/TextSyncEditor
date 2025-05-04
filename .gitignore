@@ -1,3 +1,4 @@
 tests/custom
 **/.*
 **/__pycache__
+src/text.txt
