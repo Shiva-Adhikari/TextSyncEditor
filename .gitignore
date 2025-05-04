@@ -1,0 +1,3 @@
+tests/custom
+**/.*
+**/__pycache__
