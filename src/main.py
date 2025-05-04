@@ -1,6 +1,7 @@
 # Built in Modules
 import os
 import asyncio
+import logging
 
 # Third party Module
 from websockets.asyncio.server import serve
@@ -33,7 +34,11 @@ async def main_py(websocket):
 
 async def main():
     async with serve(main_py, 'localhost', 6789) as server:
-        print('Starting...')
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(levelname)s %(message)s'
+        )
+        logging.info('Starting...')
         await server.serve_forever()
 
 
