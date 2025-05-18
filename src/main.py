@@ -4,32 +4,64 @@ import asyncio
 import logging
 
 # Third party Module
+import diff_match_patch
 from websockets.asyncio.server import serve
 
 
-root_path = os.path.abspath('src')
+root_path = os.path.abspath('data')
 file_path = os.path.join(root_path, 'text.txt')
+dmp = diff_match_patch.diff_match_patch()
 
 
 async def main_py(websocket):
+    current_text = ''
+    if os.path.exists(file_path):
+        with open(file_path, 'r', encoding='utf-8') as f:
+            current_text = f.read()
+
     async def server_receive():
+        nonlocal current_text
         async for message in websocket:
-            with open(file_path, 'w') as file:
-                file.write(message)
+            try:
+                print(f'\nmessage: {message}\n\n')
+                patches = dmp.patch_fromText(message)
+                # creating an updated version. by changes of current and get updated
+                updated_text, results = dmp.patch_apply(patches, current_text)
+                print(f'updated_text: {updated_text}')
+
+                if all(results):
+                    with open(file_path, 'w', encoding='utf-8') as f:
+                        print(f'yo chai file ma basxa: {updated_text}')
+                        f.write(updated_text)
+                        current_text = updated_text
+                else:
+                    logging.warning('Some patch failed to apply')
+            except Exception as e:
+                logging.error(f'Failed to apply patch {e}')
 
     async def server_send():
-        send_text = ''
+        nonlocal current_text
+        prev_text = ''
         while True:
-            await asyncio.sleep(.5)
             if os.path.exists(file_path):
-                with open(file_path, 'r') as f:
-                    text = f.read()
-                    if text != send_text:
-                        await websocket.send(text)
-                        send_text = text
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    current_text = f.read()
+            await asyncio.sleep(.5)
+            if current_text != prev_text:
+                # is used to compare both, which is added, removed or unchanged
+                patches = dmp.patch_make(prev_text, current_text)
+                patch_text = dmp.patch_toText(patches)
+                print(f'yo chai server bata client ma send gareko: {patch_text}')
+                await websocket.send(patch_text)
+                prev_text = current_text
 
     # gather is used to run function in parallel
+    # try:
     await asyncio.gather(server_send(), server_receive())
+    # except Exception as e:
+    #     logging.error(f'Connection closed: {e}')
+    # finally:
+    #     await websocket.close()
 
 
 async def main():
