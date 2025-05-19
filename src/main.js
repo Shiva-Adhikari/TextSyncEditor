@@ -1,5 +1,5 @@
 window.addEventListener("DOMContentLoaded", () => {
-    const websocket = new WebSocket("ws://localhost:6789/");
+    const websocket = new WebSocket("ws://localhost:8080/ws");
     const textArea = document.getElementById("textarea_id");
 
     const dmp = new diff_match_patch();
