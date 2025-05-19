@@ -8,7 +8,13 @@ import diff_match_patch
 from websockets.asyncio.server import serve
 
 
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(levelname)s %(message)s'
+)
+
 root_path = os.path.abspath('data')
+os.makedirs(root_path, exist_ok=True)
 file_path = os.path.join(root_path, 'text.txt')
 dmp = diff_match_patch.diff_match_patch()
 
@@ -23,15 +29,15 @@ async def main_py(websocket):
         nonlocal current_text
         async for message in websocket:
             try:
-                print(f'\nmessage: {message}\n\n')
+                logging.info(f'\nmessage: {message}\n\n')
                 patches = dmp.patch_fromText(message)
                 # creating an updated version. by changes of current and get updated
                 updated_text, results = dmp.patch_apply(patches, current_text)
-                print(f'updated_text: {updated_text}')
+                logging.info(f'updated_text: {updated_text}')
 
                 if all(results):
                     with open(file_path, 'w', encoding='utf-8') as f:
-                        print(f'yo chai file ma basxa: {updated_text}')
+                        logging.info(f'yo chai file ma basxa: {updated_text}')
                         f.write(updated_text)
                         current_text = updated_text
                 else:
@@ -51,25 +57,21 @@ async def main_py(websocket):
                 # is used to compare both, which is added, removed or unchanged
                 patches = dmp.patch_make(prev_text, current_text)
                 patch_text = dmp.patch_toText(patches)
-                print(f'yo chai server bata client ma send gareko: {patch_text}')
+                logging.info(f'yo chai server bata client ma send gareko: {patch_text}')
                 await websocket.send(patch_text)
                 prev_text = current_text
 
     # gather is used to run function in parallel
-    # try:
-    await asyncio.gather(server_send(), server_receive())
-    # except Exception as e:
-    #     logging.error(f'Connection closed: {e}')
-    # finally:
-    #     await websocket.close()
+    try:
+        await asyncio.gather(server_send(), server_receive())
+    except Exception as e:
+        logging.error(f'Connection closed: {e}')
+    finally:
+        await websocket.close()
 
 
 async def main():
     async with serve(main_py, 'localhost', 6789) as server:
-        logging.basicConfig(
-            level=logging.INFO,
-            format='%(levelname)s %(message)s'
-        )
         logging.info('Starting...')
         await server.serve_forever()
 
