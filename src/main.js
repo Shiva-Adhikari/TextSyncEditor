@@ -49,9 +49,10 @@ window.addEventListener("DOMContentLoaded", () => {
                 if (prevText.trim() !== newText.trim()) {
                     prevText = newText;
                     textArea.value = prevText;
-                } else {
-                    window.alert("ALREADY UPTODATE")
                 }
+                //  else {
+                    // window.alert("ALREADY UPTODATE")
+                // }
             } else {
                 console.error("Some patches failed to apply:", results);
             }
