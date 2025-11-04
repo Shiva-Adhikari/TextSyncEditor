@@ -4,6 +4,7 @@ import asyncio
 import logging
 
 # Third party Module
+import uvicorn
 from diff_match_patch import diff_match_patch
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -19,9 +20,9 @@ app.mount('/static', StaticFiles(directory='src'), name='static')
 
 data_path = os.path.abspath('data')
 os.makedirs(data_path, exist_ok=True)
-file_path = os.path.join(data_path, 'text.txt')
+file_path = os.path.join(data_path, 'editor.txt')
 src_path = os.path.abspath('src')
-html_path = os.path.join(src_path, 'main.html')
+html_path = os.path.join(src_path, 'index.html')
 
 
 @app.get('/')
@@ -52,7 +53,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
                 if all(results):
                     with open(file_path, 'w', encoding='utf-8') as f:
-                        logging.info(f'yo chai file ma basxa: {updated_text}')
+                        logging.info(f'This will save in file: {updated_text}')
                         f.write(updated_text)
                         current_text = updated_text
                 else:
@@ -75,7 +76,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     # is used to compare both, which is added, removed or unchanged
                     patches = dmp.patch_make(prev_text, current_text)
                     patch_text = dmp.patch_toText(patches)
-                    logging.info(f'yo chai server bata client ma send gareko: {patch_text}')
+                    logging.info(f'this is send from client to server: {patch_text}')
                     await websocket.send_text(patch_text)
                     prev_text = current_text
         except WebSocketDisconnect:
@@ -85,3 +86,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
     # gather is used to run function in parallel
     await asyncio.gather(server_send(), server_receive())
+
+
+if __name__ == '__main__':
+    uvicorn.run(app, host='0.0.0.0', port=8000)
