@@ -13,7 +13,7 @@ TextSyncEditor is a web-based text editor inspired by VSCode that allows you to 
 - [x] Automatic file persistence
 - [x] Simple and lightweight design
 
-## 🖼️ Screenshots
+## 🖼️ GIF
 ![TextSyncEditor Demo](screencasts/demo.gif)
 
 ## 🛠️ Technologies Used
